@@ -18,7 +18,7 @@ def generate_response(user_input):
     responses = {
         "hola": "¡Hola! ¿Cómo puedo ayudarte?",
         "adiós": "¡Hasta luego!",
-        "cómo estás": "Estoy bien, gracias por preguntar."
+        "cómo estás": "Estoy bien, gracias por preguntar.",
         "me dices una receta": "¿Cuál quieres? ¿De comida o de postre?"
     }
     return responses.get(user_input.lower(), "Lo siento, no entiendo esa pregunta.")
