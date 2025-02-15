@@ -1,3 +1,5 @@
+#Programa principal
+#Primera Versión: "Se genera una respuesta si la pregunta coincide con alguna de las establecidas"
 
 from flask import Flask, render_template, request, jsonify
 
@@ -23,6 +25,7 @@ def chat():
 def generate_response(user_input):
     responses = {
         "hola": "¡Hola! ¿Cómo puedo ayudarte?",
+        "hello": "Hello, a ti también",
         "adiós": "¡Hasta luego!",
         "cómo estás": "Estoy bien, gracias por preguntar."
     }
