@@ -6,4 +6,5 @@ nltk
 transformers
 scikit-learn
 spacy
+torch
 gunicorn
