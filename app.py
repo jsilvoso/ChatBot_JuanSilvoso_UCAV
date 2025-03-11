@@ -2,37 +2,66 @@
 #Primera Versión: "Se genera una respuesta si la pregunta coincide con alguna de las establecidas"
 
 from flask import Flask, render_template, request, jsonify
+from nltk.chat.util import Chat, reflections
+import spacy
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 app = Flask(__name__)
 
-# Lista global para almacenar el historial
-chat_history = []
+# ---- Chatbot NLTK ---- #
+pares = [
+    (r"hola|buenas", ["¡Hola! ¿En qué puedo ayudarte?", "¡Hola!"]),
+    (r"cómo estás", ["Estoy bien, gracias. ¿Y tú?", "Muy bien, ¿y tú?"]),
+    (r"adiós|chao", ["¡Hasta luego!", "Adiós, que tengas un buen día."])
+]
+chat_nltk = Chat(pares, reflections)
 
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-@app.route("/chat", methods=["POST"])
-def chat():
-    user_input = request.json.get("message", "")
-    response = generate_response(user_input)
-
-    # Guardamos el mensaje del usuario y la respuesta del chatbot
-    chat_history.append({"user": user_input, "bot": response})
-
-    return jsonify({"response": response, "history": chat_history})
-
-def generate_response(user_input):
+# ---- Chatbot con Embeddings (spaCy) ---- #
+nlp = spacy.load("es_core_news_md")
+def get_best_match(user_input):
     responses = {
-        "hola": "¡Hola! ¿Cómo puedo ayudarte?",
-        "hello": "Hello, a ti también",
-        "adiós": "¡Hasta luego!",
-        "cómo estás": "Estoy bien, gracias por preguntar."
+        "hola": "¡Hola! ¿En qué puedo ayudarte?",
+        "cómo estás": "Estoy bien, gracias por preguntar.",
+        "adiós": "¡Hasta luego!"
     }
-    return responses.get(user_input.lower(), "Lo siento, no entiendo esa pregunta.")
+    user_doc = nlp(user_input)
+    best_match = max(responses.keys(), key=lambda x: nlp(x).similarity(user_doc))
+    return responses[best_match] if user_doc.similarity(nlp(best_match)) > 0.5 else "No entendí tu pregunta."
+
+# ---- Chatbot con Transformers ---- #
+model_name = "microsoft/DialoGPT-small"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+
+def generate_transformer_response(user_input):
+    inputs = tokenizer.encode(user_input + tokenizer.eos_token, return_tensors="pt")
+    outputs = model.generate(inputs, max_length=1000, pad_token_id=tokenizer.eos_token_id)
+    response = tokenizer.decode(outputs[:, inputs.shape[-1]:][0], skip_special_tokens=True)
+    return response if response else "No tengo una respuesta para eso."
+
+# ---- Rutas Flask ---- #
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+@app.route("/chat_nltk", methods=["POST"])
+def chat_nltk_response():
+    user_input = request.json.get("message", "")
+    response = chat_nltk.respond(user_input) or "No entendí lo que dijiste."
+    return jsonify({"response": response})
+
+@app.route("/chat_embeddings", methods=["POST"])
+def chat_embeddings_response():
+    user_input = request.json.get("message", "")
+    response = get_best_match(user_input)
+    return jsonify({"response": response})
+
+@app.route("/chat_transformers", methods=["POST"])
+def chat_transformers_response():
+    user_input = request.json.get("message", "")
+    response = generate_transformer_response(user_input)
+    return jsonify({"response": response})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-
-
-
