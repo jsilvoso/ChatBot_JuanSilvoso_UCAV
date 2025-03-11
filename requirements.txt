@@ -5,4 +5,5 @@ flask
 nltk
 transformers
 scikit-learn
+spacy
 gunicorn
