@@ -7,4 +7,6 @@ transformers
 scikit-learn
 spacy
 torch
+torchvision
+torchaudio
 gunicorn
