@@ -4,7 +4,16 @@
 from flask import Flask, render_template, request, jsonify
 from nltk.chat.util import Chat, reflections
 import spacy
+import os
 import torch
+
+# Descargar el modelo si no existe
+os.system("python -m spacy download es_core_news_md")
+
+# Cargar el modelo
+nlp = spacy.load("es_core_news_md")
+
+
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 app = Flask(__name__)
