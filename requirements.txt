@@ -10,4 +10,5 @@ torch
 torchvision
 torchaudio
 gunicorn
+numpy==1.23.5
 es-core-news-md @ https://github.com/explosion/spacy-models/releases/download/es_core_news_md-3.5.0/es_core_news_md-3.5.0.tar.gz
