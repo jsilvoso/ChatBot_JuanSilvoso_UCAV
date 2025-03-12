@@ -11,10 +11,14 @@ import torch
 os.system("pip install --upgrade --force-reinstall numpy==1.23.5 spacy thinc")
 
 # Descargar el modelo si no existe
-os.system("python -m spacy download es_core_news_md")
+os.system("python -m spacy download es_core_news_sm")
 
 # Cargar el modelo
-nlp = spacy.load("es_core_news_md")
+nlp = spacy.load("es_core_news_sm")
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))  # Usa el puerto que Render asigna
+    app.run(host="0.0.0.0", port=port)
 
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -75,6 +79,3 @@ def chat_transformers_response():
     response = generate_transformer_response(user_input)
     return jsonify({"response": response})
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Usa el puerto que Render asigna
-    app.run(host="0.0.0.0", port=port)
